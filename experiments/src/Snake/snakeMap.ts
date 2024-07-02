@@ -1,5 +1,5 @@
-export const MAP_WIDTH = 20;
-export const MAP_HEIGHT = 20;
+export const MAP_WIDTH = 15;
+export const MAP_HEIGHT = 15;
 // 2D array
 export const MAP = Array.from({ length: MAP_HEIGHT }, () =>
 	Array.from({ length: MAP_WIDTH }, () => 0)

@@ -9,6 +9,12 @@ import { OrbitControls } from "@react-three/drei";
 import useKeypress from "react-use-keypress";
 
 interface Props {}
+enum Direction {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+}
 
 const ORIGINAL_APPLES = [...Array(5)].map((_) => {
 	let newAppleX = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
@@ -16,17 +22,33 @@ const ORIGINAL_APPLES = [...Array(5)].map((_) => {
 	let newApple = [newAppleX, newAppleY];
 	return newApple;
 });
+
+const ORIGINAL_SNAKE = [
+	[5, 5],
+	[4, 5],
+	[3, 5],
+];
+
 export const SnakePage = (props: Props) => {
 	const [apples, setApples] = useState(ORIGINAL_APPLES);
 	const [showCollision, setShowCollision] = useState(false);
 	const [gameRunning, setGameRunning] = useState(true);
 	const [score, setScore] = useState(0);
 
+	const [snake, setSnake] = useState(ORIGINAL_SNAKE);
+	const [direction, setDirection] = useState(Direction.RIGHT);
+
 	function replaceApple(oldApple: [number, number]) {
 		let newApples = apples.filter((a) => a !== oldApple);
-		let newAppleX = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
-		let newAppleY = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
-		let newApple = [newAppleX, newAppleY];
+		let newApple = [-1, -1];
+		do {
+			let newAppleX = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+			let newAppleY = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+			newApple = [newAppleX, newAppleY];
+		} while (
+			!newApples.find((a) => a[0] === newApple[0] && a[1] === newApple[1]) &&
+			!snake.find((a) => a[0] === newApple[0] && a[1] === newApple[1])
+		);
 		newApples = [...newApples, newApple];
 		setApples(newApples);
 	}
@@ -34,51 +56,69 @@ export const SnakePage = (props: Props) => {
 	return (
 		<>
 			{showCollision && (
+				<>
+					<div
+						style={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							width: "100vw",
+							height: "100vh",
+							backgroundColor: "rgba(255, 255, 255, 0.5)",
+							zIndex: 1000,
+							display: "flex",
+							flexDirection: "column",
+							alignItems: "center",
+							justifyContent: "center",
+							gap: "1rem",
+							fontSize: "4rem",
+							fontWeight: "bold",
+							fontFamily: "sans-serif",
+						}}
+					>
+						<h1>Game Over!</h1>
+						<h2
+							style={{
+								fontSize: "2rem",
+								fontWeight: "bold",
+								fontFamily: "sans-serif",
+							}}
+						>
+							Score: {score}
+						</h2>
+						<button
+							onClick={() => {
+								// reload the page
+								window.location.reload();
+								// setGameRunning(true);
+								// setApples(ORIGINAL_APPLES);
+								// setShowCollision(false);
+							}}
+							style={{
+								fontSize: "2rem",
+								fontWeight: "bold",
+								fontFamily: "sans-serif",
+							}}
+						>
+							New Game!
+						</button>
+					</div>
+				</>
+			)}
+			{gameRunning && (
 				<div
+					// score div
 					style={{
 						position: "absolute",
-						top: 0,
-						left: 0,
-						width: "100vw",
-						height: "100vh",
-						backgroundColor: "rgba(255, 255, 255, 0.5)",
+						top: "1rem",
+						right: "1rem",
 						zIndex: 1000,
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center",
-						justifyContent: "center",
-						gap: "1rem",
-						fontSize: "4rem",
+						fontSize: "2rem",
 						fontWeight: "bold",
 						fontFamily: "sans-serif",
 					}}
 				>
-					<h1>Game Over!</h1>
-					<h2
-						style={{
-							fontSize: "2rem",
-							fontWeight: "bold",
-							fontFamily: "sans-serif",
-						}}
-					>
-						Score: {score}
-					</h2>
-					<button
-						onClick={() => {
-							// reload the page
-							window.location.reload();
-							// setGameRunning(true);
-							// setApples(ORIGINAL_APPLES);
-							// setShowCollision(false);
-						}}
-						style={{
-							fontSize: "2rem",
-							fontWeight: "bold",
-							fontFamily: "sans-serif",
-						}}
-					>
-						New Game!
-					</button>
+					<h1>Score: {score}</h1>
 				</div>
 			)}
 
@@ -170,6 +210,10 @@ export const SnakePage = (props: Props) => {
 						setShowCollision(true);
 					}}
 					gameRunning={gameRunning}
+					snake={snake}
+					setSnake={setSnake}
+					direction={direction}
+					setDirection={setDirection}
 				></TheSnake>
 
 				{apples.map((apple) => {
@@ -198,22 +242,24 @@ function Cube(props: any) {
 	);
 }
 
-function TheSnake(props: any) {
-	const ORIGINAL_SNAKE = [
-		[5, 5],
-		[4, 5],
-		[3, 5],
-	];
-	const [snake, setSnake] = useState(ORIGINAL_SNAKE);
+function SnakeHalfSegment({ size, pointingTo, ...props }: any) {
+	const meshRef = useRef();
 
-	enum Direction {
-		UP,
-		DOWN,
-		LEFT,
-		RIGHT,
-	}
+	// create a boxGeometry that is at the current point, but longer in the direction pointingTo
+	let width = 1;
+	let height = size;
+	let depth = size;
+	if (pointingTo && meshRef) meshRef.current.lookAt(pointingTo);
 
-	const [direction, setDirection] = useState(Direction.RIGHT);
+	return (
+		<mesh {...props} ref={meshRef}>
+			<boxGeometry args={[1, 1, 1]} />
+			<meshStandardMaterial color={props.color} />
+		</mesh>
+	);
+}
+
+function TheSnake({ snake, setSnake, direction, setDirection, ...props }: any) {
 	function changeDirection(newDirection: Direction) {
 		setDirection(newDirection);
 	}
@@ -457,6 +503,16 @@ function TheSnake(props: any) {
 			{snake.map((cell, ind) => {
 				// don't render the head
 				if (ind === 0 && !showHead) return;
+
+				return (
+					<SnakeHalfSegment
+						size={0.5}
+						position={[cell[0], 0, cell[1]]}
+						pointingTo={ind === 0 ? null : snake[ind - 1]}
+						color={ind % 2 == 0 ? COLORS.SNAKE_1 : COLORS.SNAKE_2}
+						key={ind}
+					/>
+				);
 
 				return (
 					<Cube
