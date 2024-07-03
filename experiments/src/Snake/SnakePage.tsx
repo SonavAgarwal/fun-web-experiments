@@ -8,6 +8,8 @@ import { COLORS, MAP, MAP_HEIGHT, MAP_WIDTH } from "./snakeMap";
 import { OrbitControls } from "@react-three/drei";
 import useKeypress from "react-use-keypress";
 
+const ALL_DELTAS = [];
+
 interface Props {}
 enum Direction {
 	UP,
@@ -218,13 +220,13 @@ export const SnakePage = (props: Props) => {
 					setDirection={setDirection}
 				></TheSnake>
 
-				{apples.map((apple) => {
+				{apples.map((apple, index) => {
 					return (
 						<Cube
 							scale={[0.5, 0.5, 0.5]}
 							position={[apple[0], 0, apple[1]]}
 							color={COLORS.RED}
-							key={apple}
+							key={`apple-${apple[0]}-${apple[1]}-${index}`}
 						/>
 					);
 				})}
@@ -251,7 +253,8 @@ function SnakeHalfSegment({ size, pointingTo, ...props }: any) {
 	let width = 1;
 	let height = size;
 	let depth = size;
-	if (pointingTo && meshRef) meshRef.current.lookAt(pointingTo);
+	if (pointingTo && meshRef && meshRef.current)
+		meshRef.current.lookAt(pointingTo);
 
 	return (
 		<mesh {...props} ref={meshRef}>
@@ -369,18 +372,19 @@ function TheSnake({ snake, setSnake, direction, setDirection, ...props }: any) {
 		changeDirection(rotateDirection(direction, 90));
 		changedDirection.current = true;
 	});
-
-	const fallingInWorldCountdown = useRef(500);
+	const INTRODUCTION_LENGTH = 3;
+	const fallingInWorldCount = useRef(0);
 	function moveSnake(state, delta: number) {
-		if (fallingInWorldCountdown.current === 500) {
+		if (fallingInWorldCount.current === 0) {
 			let currentHead = snake[0];
 			targetPosition.current = new THREE.Vector3(
 				currentHead[0],
 				0,
 				currentHead[1]
 			);
-			camera.position.set(-100, 200, 0);
-			camera.lookAt(new THREE.Vector3(0, 0, 0));
+			camera.position.set(-50, 50, currentHead[1]);
+			// camera.lookAt(new THREE.Vector3(0, 0, 0));
+			camera.lookAt(targetPosition.current);
 			oldPosition.current = camera.position.clone();
 			oldQuaternion.current = camera.quaternion.clone();
 
@@ -396,23 +400,44 @@ function TheSnake({ snake, setSnake, direction, setDirection, ...props }: any) {
 			tempObject.clear();
 			// return;
 		}
-		if (fallingInWorldCountdown.current > 0) {
+		if (fallingInWorldCount.current < INTRODUCTION_LENGTH) {
+			fallingInWorldCount.current += delta;
+			console.log("fallingInWorldCountdown", fallingInWorldCount.current);
 			// print current position and target position
-			console.log(
-				"current",
-				camera.position.x,
-				camera.position.y,
-				camera.position.z
+			// console.log(
+			// 	"current",
+			// 	camera.position.x,
+			// 	camera.position.y,
+			// 	camera.position.z
+			// );
+			// console.log(
+			// 	"target",
+			// 	targetPosition.current.x,
+			// 	targetPosition.current.y,
+			// 	targetPosition.current.z
+			// );
+
+			let oldPCopy = oldPosition.current.clone();
+			oldPCopy.lerp(
+				targetPosition.current,
+				fallingInWorldCount.current / INTRODUCTION_LENGTH
 			);
-			console.log(
-				"target",
-				targetPosition.current.x,
-				targetPosition.current.y,
-				targetPosition.current.z
+			camera.position.copy(oldPCopy);
+			let oldQCopy = oldQuaternion.current.clone();
+			oldQCopy.slerp(
+				targetQuaternion.current,
+				fallingInWorldCount.current / INTRODUCTION_LENGTH
 			);
-			camera.position.lerp(targetPosition.current, delta * 1.5);
-			camera.quaternion.slerp(targetQuaternion.current, delta * 0.5);
-			fallingInWorldCountdown.current -= 1;
+			camera.quaternion.copy(oldQCopy);
+
+			console.log("delta", delta);
+			ALL_DELTAS.push(delta);
+			// print the sum of all deltas
+			console.log(
+				"sum",
+				ALL_DELTAS.reduce((a, b) => a + b, 0)
+			);
+			// fallingInWorldCountdown.current -= 1;
 			return;
 		}
 
@@ -506,15 +531,15 @@ function TheSnake({ snake, setSnake, direction, setDirection, ...props }: any) {
 				// don't render the head
 				if (ind === 0 && !showHead) return;
 
-				return (
-					<SnakeHalfSegment
-						size={0.5}
-						position={[cell[0], 0, cell[1]]}
-						pointingTo={ind === 0 ? null : snake[ind - 1]}
-						color={ind % 2 == 0 ? COLORS.SNAKE_1 : COLORS.SNAKE_2}
-						key={ind}
-					/>
-				);
+				// return (
+				// 	<SnakeHalfSegment
+				// 		size={0.5}
+				// 		position={[cell[0], 0, cell[1]]}
+				// 		pointingTo={ind === 0 ? null : snake[ind - 1]}
+				// 		color={ind % 2 == 0 ? COLORS.SNAKE_1 : COLORS.SNAKE_2}
+				// 		key={ind}
+				// 	/>
+				// );
 
 				return (
 					<Cube
