@@ -119,7 +119,7 @@ const FlexBox = ({
 					className={cN(
 						"h-full w-full bg-white",
 						"ring-[1px] ring-inset ring-solid ring-black box-border",
-						{ "!ring-blue-700 shadow-lg": isSelected },
+						{ "!ring-blue-700 bg-blue-200 shadow-lg": isSelected },
 						"hover:ring-blue-300 hover:shadow-lg",
 						className
 					)}
