@@ -165,6 +165,7 @@ export const SnakePage = (props: Props) => {
 						if (cell === 1) {
 							return (
 								<Cube
+									key={`${rowIndex}-${colIndex}1`}
 									position={[rowIndex, 0, colIndex]}
 									color={
 										(rowIndex + colIndex) % 2 === 0
@@ -184,6 +185,7 @@ export const SnakePage = (props: Props) => {
 								<mesh
 									position={[rowIndex, -0.5, colIndex]}
 									rotation={[-Math.PI / 2, 0, 0]}
+									key={`${rowIndex}-${colIndex}2`}
 								>
 									<planeGeometry args={[1, 1]} />
 									<meshStandardMaterial
