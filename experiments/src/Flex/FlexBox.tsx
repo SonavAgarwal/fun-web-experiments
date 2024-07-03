@@ -89,9 +89,9 @@ const FlexBox = ({
 		topLeft: undefined,
 	};
 	const size = {
-		width: box.flex === 0 && useNumberWidth(parent) ? box.width || 10 : "100%",
+		width: box.flex === 0 && useNumberWidth(parent) ? box.width || 50 : "100%",
 		height:
-			box.flex === 0 && useNumberHeight(parent) ? box.height || 10 : "100%",
+			box.flex === 0 && useNumberHeight(parent) ? box.height || 50 : "100%",
 	};
 
 	return (

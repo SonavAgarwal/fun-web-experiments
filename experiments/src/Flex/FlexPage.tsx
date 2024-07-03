@@ -145,9 +145,41 @@ const FlexPage = () => {
 						></FlexBox>
 					</Resizable>
 				</div>
-				<div className="w-[20rem] h-lvh bg-gray-200 flex flex-col items-center justify-center p-4 box-border">
+				<div className="w-[20rem] h-lvh bg-gray-200 flex flex-col p-4 box-border">
 					{selected && (
 						<>
+							<label className="mb-2 w-full text-left">Direction</label>
+							<select
+								value={selected.direction}
+								onChange={(e) => {
+									if (!selected) return;
+									selected.direction = e.target.value as any;
+									forceUpdate();
+								}}
+								className="w-full h-12 border-none bg-white rounded-lg p-4 box-border mb-4 "
+							>
+								{DIRECTION_OPTIONS.map((option) => (
+									<option value={option} className="capitalize">
+										{option}
+									</option>
+								))}
+							</select>
+							<label className="mb-2 w-full text-left">Flex</label>
+							<select
+								value={selected.flex}
+								onChange={(e) => {
+									if (!selected) return;
+									selected.flex = e.target.value as any;
+									forceUpdate();
+								}}
+								className="w-full h-12 border-none bg-white rounded-lg p-4 box-border mb-4 "
+							>
+								{FLEX_OPTIONS.map((option) => (
+									<option value={option} className="capitalize">
+										{option}
+									</option>
+								))}
+							</select>
 							<label className="mb-2 w-full text-left">Justify</label>
 							<select
 								value={selected.justify}
