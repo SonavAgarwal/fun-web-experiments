@@ -1,8 +1,9 @@
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { Resizable } from "re-resizable";
 import { useReducer, useRef } from "react";
-import { CopyBlock, atomOneLight } from "react-code-blocks";
-import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
+import toast, { Toaster } from "react-hot-toast";
+import { useHotkeys } from "react-hotkeys-hook";
+import { FaCopy } from "react-icons/fa";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import FlexBox from "./FlexBox";
 import "./flexPage.css";
 import {
@@ -15,9 +16,6 @@ import {
 	translateToTailwind,
 } from "./flexUtil";
 import { useSelectedStore } from "./useSelectedStore";
-import toast, { Toaster } from "react-hot-toast";
-import { FaCopy } from "react-icons/fa";
-import { useIsKeyPressed } from "./useIsKeyPressed";
 
 const FlexPage = () => {
 	const selected = useSelectedStore((state) => state.selected);
@@ -296,7 +294,7 @@ const FlexPage = () => {
 						borderRadius: "0.5rem",
 					}}
 				>
-					{translateToTailwind(selected || box.current, 0, updateCount)}{" "}
+					{translateToTailwind(selected || box.current, null, 0, updateCount)}
 				</SyntaxHighlighter>
 			</div>
 		</div>

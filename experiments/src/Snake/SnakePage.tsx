@@ -31,7 +31,7 @@ const ORIGINAL_SNAKE = [
 	[3, 5],
 ];
 
-export const SnakePage = (props: Props) => {
+export default SnakePage = (props: Props) => {
 	const [apples, setApples] = useState(ORIGINAL_APPLES);
 	const [showCollision, setShowCollision] = useState(false);
 	const [gameRunning, setGameRunning] = useState(true);

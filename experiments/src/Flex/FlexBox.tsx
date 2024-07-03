@@ -2,24 +2,17 @@ import cN from "classnames";
 import { Resizable } from "re-resizable";
 import useMeasure from "react-use-measure";
 import {
-	FlexBoxTree,
-	JUSTIFY_OPTIONS,
-	useNumberHeight,
-	useNumberWidth,
-} from "./flexUtil";
-import { useIsKeyPressed } from "./useIsKeyPressed";
-import { useSelectedStore } from "./useSelectedStore";
-import AddButton from "./AddButton";
-import {
 	CommandState,
 	nothingPressed,
 	onInsideButtonClick,
 	onOuterButtonClick,
-	stateToButtonText,
-	stateToButtonClasses,
 	showButtons,
+	stateToButtonClasses,
+	stateToButtonText,
 } from "./buttons";
-import { useHotkeys } from "react-hotkeys-hook";
+import { FlexBoxTree, useNumberHeight, useNumberWidth } from "./flexUtil";
+import { useIsKeyPressed } from "./useIsKeyPressed";
+import { useSelectedStore } from "./useSelectedStore";
 
 interface Props {
 	box: FlexBoxTree;
@@ -37,8 +30,6 @@ const FlexBox = ({
 	className,
 	index,
 	parent,
-	removeSelf,
-
 	after = true,
 }: Props) => {
 	const [ref, bounds] = useMeasure();
@@ -47,7 +38,7 @@ const FlexBox = ({
 	const setSelected = useSelectedStore((state) => state.setSelected);
 	const isSelected = selected == box;
 
-	const ePressed = useIsKeyPressed("e");
+	// const ePressed = useIsKeyPressed("e");
 	const vPressed = useIsKeyPressed("v");
 	// const aPressed = useIsKeyPressed("a");
 	// const sPressed = useIsKeyPressed("s");

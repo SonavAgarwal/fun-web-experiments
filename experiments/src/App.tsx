@@ -1,8 +1,13 @@
+import { lazy } from "react";
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import AlienCat from "./AlienCat/AlienCat.tsx";
-import { SnakePage } from "./Snake/SnakePage.tsx";
-import FlexPage from "./Flex/FlexPage.tsx";
+// import AlienCat from "./AlienCat/AlienCat.tsx";
+// import { SnakePage } from "./Snake/SnakePage.tsx";
+// import FlexPage from "./Flex/FlexPage.tsx";
+
+const AlienCat = lazy(() => import("./AlienCat/AlienCat"));
+const SnakePage = lazy(() => import("./Snake/SnakePage"));
+const FlexPage = lazy(() => import("./Flex/FlexPage"));
 
 const Redirect = () => {
 	// go to sonavagarwal.com

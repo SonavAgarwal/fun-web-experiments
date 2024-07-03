@@ -1,4 +1,3 @@
-import { exp } from "three/examples/jsm/nodes/Nodes.js";
 import { FlexBoxTree, createFlexBoxTree } from "./flexUtil";
 
 export type ButtonPosition =
@@ -88,7 +87,7 @@ export function nothingPressed(state: CommandState) {
 }
 
 export function onOuterButtonClick(
-	state: CommandState,
+	_: CommandState,
 	box: FlexBoxTree,
 	position: "top" | "bottom" | "left" | "right" | "between",
 	update: () => void,
