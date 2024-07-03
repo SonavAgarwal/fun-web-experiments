@@ -5,6 +5,16 @@ body {
 	@apply font-mono;
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	.fb {
+		@apply flex items-center justify-center min-w-3 min-h-3 transition-all duration-100 ease-in-out outline-none opacity-0 hover:opacity-100 text-sm;
+	}
+}
+
 .react-resizable {
 	position: relative;
 }

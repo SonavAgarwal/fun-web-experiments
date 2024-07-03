@@ -1,10 +1,25 @@
-import classNames from "classnames";
-import { FlexBoxTree } from "./FlexPage";
-import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
-import { useEffect, useState } from "react";
-import useMeasure, { RectReadOnly } from "react-use-measure";
+import cN from "classnames";
 import { Resizable } from "re-resizable";
+import useMeasure from "react-use-measure";
+import {
+	FlexBoxTree,
+	JUSTIFY_OPTIONS,
+	useNumberHeight,
+	useNumberWidth,
+} from "./flexUtil";
+import { useIsKeyPressed } from "./useIsKeyPressed";
 import { useSelectedStore } from "./useSelectedStore";
+import AddButton from "./AddButton";
+import {
+	CommandState,
+	nothingPressed,
+	onInsideButtonClick,
+	onOuterButtonClick,
+	stateToButtonText,
+	stateToButtonClasses,
+	showButtons,
+} from "./buttons";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface Props {
 	box: FlexBoxTree;
@@ -32,12 +47,32 @@ const FlexBox = ({
 	const setSelected = useSelectedStore((state) => state.setSelected);
 	const isSelected = selected == box;
 
-	let isResizable = box.flex === 0;
+	const ePressed = useIsKeyPressed("e");
+	const vPressed = useIsKeyPressed("v");
+	// const aPressed = useIsKeyPressed("a");
+	// const sPressed = useIsKeyPressed("s");
+	// const dPressed = useIsKeyPressed("d");
+	// const fPressed = useIsKeyPressed("f");
+	const commandPressed = useIsKeyPressed("meta");
+	const commandShift = useIsKeyPressed("meta+shift");
+
+	const commandState: CommandState = {
+		command: commandPressed,
+		commandShift: commandShift,
+		v: vPressed,
+		a: false,
+		s: false,
+		d: false,
+		f: false,
+	};
+	// console.log("commandState", commandState);
+
+	let isResizable = box.flex === 0 && vPressed;
 	const enabledDirections = {
-		top: isResizable && parent?.direction === "column",
-		right: isResizable && parent?.direction === "row",
-		bottom: isResizable && parent?.direction === "column",
-		left: isResizable && parent?.direction === "row",
+		top: isResizable && useNumberHeight(parent),
+		right: isResizable && useNumberWidth(parent),
+		bottom: isResizable && useNumberHeight(parent),
+		left: isResizable && useNumberWidth(parent),
 		topRight: false,
 		bottomRight: false,
 		bottomLeft: false,
@@ -54,43 +89,39 @@ const FlexBox = ({
 		topLeft: undefined,
 	};
 	const size = {
-		width: isResizable && parent?.direction === "row" ? box.width : "100%",
-		height: isResizable && parent?.direction === "column" ? box.height : "100%",
+		width: box.flex === 0 && useNumberWidth(parent) ? box.width || 10 : "100%",
+		height:
+			box.flex === 0 && useNumberHeight(parent) ? box.height || 10 : "100%",
 	};
 
 	return (
 		<>
 			<Resizable
-				// handleWrapperClass={"hidden"}
 				handleClasses={handleClasses}
 				size={size}
-				onResizeStop={(e, direction, ref, d) => {
-					box.width = d.width;
-					box.height = d.height;
+				onResizeStop={() => {
+					box.width = bounds.width;
+					box.height = bounds.height;
+					update();
 				}}
 				enable={enabledDirections}
-				className={classNames(
-					// "ring-1 ring-black box-border"
-					"h-full w-full"
-					// "relative",
-				)}
+				className={cN("h-full w-full")}
 				style={{
 					flex: box.flex,
 				}}
 			>
 				<div
+					ref={ref}
 					onClick={(e) => {
 						setSelected(box);
 						e.stopPropagation();
 					}}
-					className={classNames(
-						// "ring-1 ring-black box-border"
-						"h-full w-full",
-						"border-[1px] border-solid border-black box-border",
-						"hover:border-blue-300 hover:shadow-lg",
-						{ "!border-blue-700 shadow-lg": isSelected }
-						// "border-[1px] border-solid border-black box-border"
-						// "relative",
+					className={cN(
+						"h-full w-full bg-white",
+						"ring-[1px] ring-inset ring-solid ring-black box-border",
+						{ "!ring-blue-700 shadow-lg": isSelected },
+						"hover:ring-blue-300 hover:shadow-lg",
+						className
 					)}
 					style={{
 						display: "flex",
@@ -98,54 +129,70 @@ const FlexBox = ({
 						// flex: box.flex,
 						justifyContent: box.justify,
 						alignItems: box.align,
-						gap: box.gap,
-						padding: box.padding + 8,
+						gap: showButtons(commandState, "other") ? 0 : box.gap * 4,
+						padding: showButtons(commandState, "other") ? 12 : box.padding * 4,
 					}}
 				>
-					{box.children.length >= 1 && (
+					{box.children.length >= 1 && showButtons(commandState, "other") && (
 						<>
-							<AddButton
-								box={box}
-								update={update}
-								className={"absolute w-2 h-full left-0 top-0"}
-								position="left"
-								removeSelf={removeSelf}
-								parent={parent}
-							/>
-							<AddButton
-								box={box}
-								update={update}
-								className={"absolute w-2 h-full right-0 top-0"}
-								position="right"
-								removeSelf={removeSelf}
-								parent={parent}
-							/>
-							<AddButton
-								box={box}
-								update={update}
-								className={"absolute h-2 w-full left-0 top-0"}
-								position="top"
-								removeSelf={removeSelf}
-								parent={parent}
-							/>
-							<AddButton
-								box={box}
-								update={update}
-								className={"absolute h-2 w-full left-0 bottom-0"}
-								position="bottom"
-								removeSelf={removeSelf}
-								parent={parent}
-							/>
+							<button
+								className={cN(
+									"fb absolute h-full w-3 left-0 top-0",
+									stateToButtonClasses(commandState, "left")
+								)}
+								onClick={() => {
+									onOuterButtonClick(commandState, box, "left", update);
+								}}
+							>
+								{stateToButtonText(commandState, "left")}
+							</button>
+							<button
+								className={cN(
+									"fb absolute h-full w-3 right-0 top-0",
+									stateToButtonClasses(commandState, "left")
+								)}
+								onClick={() => {
+									onOuterButtonClick(commandState, box, "right", update);
+								}}
+							>
+								{stateToButtonText(commandState, "right")}
+							</button>
+							<button
+								className={cN(
+									"fb absolute w-full h-3 left-0 top-0",
+									stateToButtonClasses(commandState, "top")
+								)}
+								onClick={() => {
+									onOuterButtonClick(commandState, box, "top", update);
+								}}
+							>
+								{stateToButtonText(commandState, "top")}
+							</button>
+							<button
+								className={cN(
+									"fb absolute w-full h-3 left-0 bottom-0",
+									stateToButtonClasses(commandState, "bottom")
+								)}
+								onClick={() => {
+									onOuterButtonClick(commandState, box, "bottom", update);
+								}}
+							>
+								{stateToButtonText(commandState, "bottom")}
+							</button>
 						</>
 					)}
 					{box.children.length === 0 && (
-						<AddButton
-							box={box}
-							update={update}
-							position="inside"
-							removeSelf={removeSelf}
-							parent={parent}
-						></AddButton>
+						<button
+							className={cN(
+								"fb absolute inset-0 w-full h-full",
+								stateToButtonClasses(commandState, "inside")
+							)}
+							onClick={() => {
+								onInsideButtonClick(commandState, box, update, parent);
+							}}
+						>
+							{stateToButtonText(commandState, "inside")}
+						</button>
 					)}
 					{box.children.map((child, index) => (
 						<FlexBox
@@ -155,266 +202,49 @@ const FlexBox = ({
 							update={update}
 							removeSelf={() => {
 								box.children.splice(index, 1);
-
 								update();
 							}}
-							// no after if we are the last child
 							after={index !== box.children.length - 1}
 							index={index}
 						></FlexBox>
 					))}
+					{box.children.length === 0 && nothingPressed(commandState) && (
+						<textarea
+							className="absolute inset-0 w-full h-full p-2 bg-transparent border-none text-center resize-none"
+							value={box.text}
+							onClick={(e) => {
+								setSelected(box);
+								e.stopPropagation();
+							}}
+							onChange={(e) => {
+								box.text = e.target.value;
+								update();
+							}}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === "Escape") {
+									e.preventDefault();
+									e.currentTarget.blur();
+								}
+							}}
+						/>
+					)}
 				</div>
 			</Resizable>
-			{after && (
-				<AddButton
-					box={box}
-					update={update}
-					className={classNames("", {
-						"w-2 h-full": parent?.direction === "row",
-						"w-full h-2": parent?.direction === "column",
+			{after && showButtons(commandState, "other") && (
+				<button
+					className={cN("fb", stateToButtonClasses(commandState, "between"), {
+						"h-full w-3": parent?.direction === "row",
+						"h-3 w-full": parent?.direction === "column",
 					})}
-					position="between"
-					index={index}
-					isAfter
-					removeSelf={removeSelf}
-					parent={parent}
-				/>
+					onClick={() => {
+						onInsideButtonClick(commandState, box, update, parent, index);
+					}}
+				>
+					{stateToButtonText(commandState, "between")}
+				</button>
 			)}
 		</>
 	);
 };
-
-function AddButton({
-	box,
-	update,
-	position,
-	isAfter,
-	className,
-	removeSelf,
-	index,
-	parent,
-}: {
-	box: FlexBoxTree;
-	update: () => void;
-	position?: "top" | "bottom" | "left" | "right" | "inside" | "between";
-	index?: number;
-	isAfter?: boolean;
-	className?: string;
-	removeSelf?: () => void;
-
-	parent: FlexBoxTree | null;
-}) {
-	const [inverted, setInverted] = useState(false);
-	useHotkeys(
-		"shift",
-		() => {
-			if (position === "inside") setInverted(isHotkeyPressed("shift"));
-		},
-		{
-			keydown: true,
-			keyup: true,
-		}
-	);
-
-	const [optionPressed, setOptionPressed] = useState(false);
-	useHotkeys(
-		"f",
-		() => {
-			setOptionPressed(isHotkeyPressed("f"));
-		},
-		{
-			keydown: true,
-			keyup: true,
-		}
-	);
-	const [sPressed, setSPressed] = useState(false);
-	useHotkeys(
-		"s",
-		() => {
-			setSPressed(isHotkeyPressed("s"));
-		},
-		{
-			keydown: true,
-			keyup: true,
-		}
-	);
-
-	// const [gapPressed, setGapPressed] = useState(false);
-	// useHotkeys(
-	// 	"g",
-	// 	() => {
-	// 		setGapPressed(isHotkeyPressed("g"));
-	// 	},
-	// 	{
-	// 		keydown: true,
-	// 		keyup: true,
-	// 	}
-	// );
-	// const [paddingPressed, setPaddingPressed] = useState(false);
-	// useHotkeys(
-	// 	"w",
-	// 	() => {
-	// 		setPaddingPressed(isHotkeyPressed("w"));
-	// 	},
-	// 	{
-	// 		keydown: true,
-	// 		keyup: true,
-	// 	}
-	// );
-
-	function getButtonText() {
-		if (optionPressed) {
-			if (box.flex === 0) {
-				return "f";
-			} else {
-				return "u";
-			}
-		} else if (inverted) {
-			return "⨯";
-		} else {
-			return "+";
-		}
-	}
-
-	const onClick = () => {
-		if (sPressed) return;
-
-		// // HANDLE CHANGING PADDING AND GAP
-		// if (paddingPressed) {
-		// 	if (inverted) box.padding = Math.max(0, box.padding - 1);
-		// 	else box.padding += 1;
-		// 	update();
-		// 	return;
-		// }
-		// if (gapPressed) {
-		// 	if (inverted) box.gap = Math.max(0, box.gap - 1);
-		// 	else box.gap += 1;
-		// 	update();
-		// 	return;
-		// }
-
-		// HANDLE ADDING NEW BOXES
-
-		let newBox: FlexBoxTree = {
-			direction: "row",
-			flex: 1,
-			justify: "center",
-			align: "center",
-			gap: 0,
-			padding: 0,
-			children: [],
-		};
-
-		let newBox2: FlexBoxTree = {
-			direction: "row",
-			flex: 1,
-			justify: "center",
-			align: "center",
-			gap: 0,
-			padding: 0,
-			children: [],
-		};
-
-		switch (position) {
-			case "top":
-				if (box.children.length <= 1 || box.direction === "column") {
-					box.direction = "column";
-					box.children.unshift(newBox);
-				} else {
-					newBox2.direction = box.direction;
-					newBox2.children = box.children;
-					box.children = [newBox2];
-					box.direction = "column";
-					box.children.unshift(newBox);
-				}
-
-				break;
-			case "bottom":
-				if (box.children.length <= 1 || box.direction === "column") {
-					box.direction = "column";
-					box.children.push(newBox);
-				} else {
-					newBox2.direction = box.direction;
-					newBox2.children = box.children;
-					box.children = [newBox2];
-					box.direction = "column";
-					box.children.push(newBox);
-				}
-				break;
-			case "left":
-				if (box.children.length <= 1 || box.direction === "row") {
-					box.direction = "row";
-					box.children.unshift(newBox);
-				} else {
-					newBox2.direction = box.direction;
-					newBox2.children = box.children;
-					box.children = [newBox2];
-					box.direction = "row";
-					box.children.unshift(newBox);
-				}
-				break;
-			case "right":
-				if (box.children.length <= 1 || box.direction === "row") {
-					box.direction = "row";
-					box.children.push(newBox);
-				} else {
-					newBox2.direction = box.direction;
-					newBox2.children = box.children;
-					box.children = [newBox2];
-					box.direction = "row";
-					box.children.push(newBox);
-				}
-				break;
-			case "inside":
-				if (optionPressed) {
-					box.flex = box.flex === 0 ? 1 : 0;
-				} else if (inverted) {
-					removeSelf!();
-				} else {
-					box.children.push(newBox);
-				}
-				break;
-			case "between":
-				parent?.children.splice(index! + 1, 0, newBox);
-				break;
-		}
-
-		update();
-	};
-
-	return (
-		<button
-			className={classNames(
-				"flex items-center justify-center min-w-2 min-h-2 transition-all duration-100 ease-in-out outline-none opacity-0 hover:opacity-100",
-				{
-					"bg-blue-300": !inverted,
-					"bg-red-300": inverted,
-					"bg-yellow-300": optionPressed && position === "inside",
-					"!bg-transparent": sPressed,
-					// // green to black vertical gradient
-					// "bg-gradient-to-b from-green-300 to-gray-600":
-					// 	gapPressed && !inverted,
-					// // flipped direction
-					// "bg-gradient-to-t from-green-300 to-gray-600": gapPressed && inverted,
-					// // orange to black vertical gradient
-					// "bg-gradient-to-b from-orange-300 to-gray-600":
-					// 	paddingPressed && !inverted,
-					// // flipped direction
-					// "bg-gradient-to-t from-orange-300 to-gray-600":
-					// 	paddingPressed && inverted,
-				},
-				{
-					"w-full": position === "inside",
-					"h-full": position === "inside",
-					"flex-1": box.children.length === 0 && !isAfter,
-				},
-				className
-			)}
-			onClick={onClick}
-		>
-			{/* {getButtonText()} */}
-		</button>
-	);
-}
 
 export default FlexBox;
