@@ -184,7 +184,7 @@ const FlexBox = ({
 					{box.children.length === 0 && (
 						<button
 							className={cN(
-								"fb absolute inset-0 w-full h-full",
+								"fb absolute inset-3",
 								stateToButtonClasses(commandState, "inside")
 							)}
 							onClick={() => {

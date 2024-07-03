@@ -42,7 +42,7 @@ export function stateToButtonClasses(
 				nothingPressed(state) ||
 				(state.v && !state.command && !state.commandShift),
 			"bg-blue-500": state.command,
-			"bg-red-300": state.commandShift,
+			"bg-red-300 !inset-0 w-full h-full": state.commandShift,
 		};
 	}
 }
@@ -166,15 +166,7 @@ export function onInsideButtonClick(
 		return;
 	}
 
-	let newBox: FlexBoxTree = {
-		direction: "row",
-		flex: 1,
-		justify: "center",
-		align: "center",
-		gap: 0,
-		padding: 0,
-		children: [],
-	};
+	let newBox: FlexBoxTree = createFlexBoxTree();
 
 	if (index === -1) {
 		box.children.push(newBox);
