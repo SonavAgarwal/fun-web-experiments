@@ -268,6 +268,7 @@ const FlexPage = () => {
 						// copy to clipboard
 						let code = translateToTailwind(
 							selected || box.current,
+							null,
 							0,
 							updateCount
 						);

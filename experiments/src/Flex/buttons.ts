@@ -25,7 +25,7 @@ export function stateToButtonClasses(
 	position: ButtonPosition
 ) {
 	// if we're an outside button
-	if (["top", "bottom", "left", "right"].includes(position)) {
+	if (["top", "bottom", "left", "right", "between"].includes(position)) {
 		return {
 			"bg-transparent": nothingPressed(state),
 			"pointer-events-none":
@@ -35,7 +35,7 @@ export function stateToButtonClasses(
 		};
 	}
 	// if we're an inside button
-	else if (["inside", "between"].includes(position)) {
+	else if (["inside"].includes(position)) {
 		return {
 			"bg-transparent": nothingPressed(state),
 			"pointer-events-none":
@@ -90,8 +90,10 @@ export function nothingPressed(state: CommandState) {
 export function onOuterButtonClick(
 	state: CommandState,
 	box: FlexBoxTree,
-	position: "top" | "bottom" | "left" | "right",
-	update: () => void
+	position: "top" | "bottom" | "left" | "right" | "between",
+	update: () => void,
+	parent: FlexBoxTree | null = null,
+	index: number = -1
 ) {
 	let newBox: FlexBoxTree = createFlexBoxTree();
 
@@ -147,6 +149,13 @@ export function onOuterButtonClick(
 				box.children.push(newBox);
 			}
 			break;
+		case "between":
+			// insert at index
+			if (index === -1 || !parent) {
+				return;
+			}
+			parent.children.splice(index + 1, 0, newBox);
+			break;
 	}
 	update();
 }
@@ -159,7 +168,7 @@ export function onInsideButtonClick(
 	index: number = -1
 ) {
 	if (state.commandShift) {
-		if (parent) {
+		if (parent && index !== -1) {
 			parent.children.splice(index, 1);
 		}
 		update();
@@ -168,13 +177,7 @@ export function onInsideButtonClick(
 
 	let newBox: FlexBoxTree = createFlexBoxTree();
 
-	if (index === -1) {
-		box.children.push(newBox);
-	} else {
-		if (parent) {
-			parent.children.splice(index, 0, newBox);
-		}
-	}
+	box.children.push(newBox);
 
 	update();
 }

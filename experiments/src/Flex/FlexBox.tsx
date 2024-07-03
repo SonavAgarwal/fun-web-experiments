@@ -141,7 +141,14 @@ const FlexBox = ({
 									stateToButtonClasses(commandState, "left")
 								)}
 								onClick={() => {
-									onOuterButtonClick(commandState, box, "left", update);
+									onOuterButtonClick(
+										commandState,
+										box,
+										"left",
+										update,
+										parent,
+										index
+									);
 								}}
 							>
 								{stateToButtonText(commandState, "left")}
@@ -152,7 +159,14 @@ const FlexBox = ({
 									stateToButtonClasses(commandState, "left")
 								)}
 								onClick={() => {
-									onOuterButtonClick(commandState, box, "right", update);
+									onOuterButtonClick(
+										commandState,
+										box,
+										"right",
+										update,
+										parent,
+										index
+									);
 								}}
 							>
 								{stateToButtonText(commandState, "right")}
@@ -163,7 +177,14 @@ const FlexBox = ({
 									stateToButtonClasses(commandState, "top")
 								)}
 								onClick={() => {
-									onOuterButtonClick(commandState, box, "top", update);
+									onOuterButtonClick(
+										commandState,
+										box,
+										"top",
+										update,
+										parent,
+										index
+									);
 								}}
 							>
 								{stateToButtonText(commandState, "top")}
@@ -174,7 +195,14 @@ const FlexBox = ({
 									stateToButtonClasses(commandState, "bottom")
 								)}
 								onClick={() => {
-									onOuterButtonClick(commandState, box, "bottom", update);
+									onOuterButtonClick(
+										commandState,
+										box,
+										"bottom",
+										update,
+										parent,
+										index
+									);
 								}}
 							>
 								{stateToButtonText(commandState, "bottom")}
@@ -188,7 +216,7 @@ const FlexBox = ({
 								stateToButtonClasses(commandState, "inside")
 							)}
 							onClick={() => {
-								onInsideButtonClick(commandState, box, update, parent);
+								onInsideButtonClick(commandState, box, update, parent, index);
 							}}
 						>
 							{stateToButtonText(commandState, "inside")}
@@ -200,10 +228,6 @@ const FlexBox = ({
 							key={index}
 							box={child}
 							update={update}
-							removeSelf={() => {
-								box.children.splice(index, 1);
-								update();
-							}}
 							after={index !== box.children.length - 1}
 							index={index}
 						></FlexBox>
@@ -237,7 +261,14 @@ const FlexBox = ({
 						"h-3 w-full": parent?.direction === "column",
 					})}
 					onClick={() => {
-						onInsideButtonClick(commandState, box, update, parent, index);
+						onOuterButtonClick(
+							commandState,
+							box,
+							"between",
+							update,
+							parent,
+							index
+						);
 					}}
 				>
 					{stateToButtonText(commandState, "between")}
