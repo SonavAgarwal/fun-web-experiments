@@ -1,13 +1,16 @@
-import { lazy } from "react";
+import { Suspense, lazy } from "react";
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import LinkShortener from "./Links/LinkShortener.tsx";
+// import CoinsPage from "./ThickCoins/CoinsPage.tsx";
 // import AlienCat from "./AlienCat/AlienCat.tsx";
 // import { SnakePage } from "./Snake/SnakePage.tsx";
 // import FlexPage from "./Flex/FlexPage.tsx";
 
-const AlienCat = lazy(() => import("./AlienCat/AlienCat"));
-const SnakePage = lazy(() => import("./Snake/SnakePage"));
-const FlexPage = lazy(() => import("./Flex/FlexPage"));
+const AlienCat = lazy(() => import("./AlienCat/AlienCat.tsx"));
+const SnakePage = lazy(() => import("./Snake/SnakePage.tsx"));
+const FlexPage = lazy(() => import("./Flex/FlexPage.tsx"));
+const CoinsPage = lazy(() => import("./ThickCoins/CoinsPage.tsx"));
 
 const Redirect = () => {
 	// go to sonavagarwal.com
@@ -33,10 +36,22 @@ const router = createBrowserRouter([
 		path: "/flex",
 		element: <FlexPage></FlexPage>,
 	},
+	{
+		path: "/coins",
+		element: <CoinsPage></CoinsPage>,
+	},
+	{
+		path: "/l/:id",
+		element: <LinkShortener></LinkShortener>,
+	},
 ]);
 
 function App() {
-	return <RouterProvider router={router} />;
+	return (
+		<Suspense fallback={<div></div>}>
+			<RouterProvider router={router} />
+		</Suspense>
+	);
 }
 
 export default App;
